@@ -1,8 +1,8 @@
-
+import sys
 import asyncio
 from androidtvremote2 import AndroidTVRemote
 
-HOST = "192.168.1.10"
+HOST = sys.argv[1] if len(sys.argv) > 1 else "192.168.1.12"
 
 
 async def main():
@@ -22,23 +22,33 @@ async def main():
 
         if state is True:
             print("The box reports that it is ON.")
-            print("No power command sent, to avoid turning it off.")
-            return
+            confirm = input(
+                "Send POWER to attempt to turn it OFF? Type YES: "
+            ).strip()
 
-        if state is None:
-            print("Power state is unknown. No command sent.")
-            return
+            if confirm != "YES":
+                print("Cancelled.")
+                return
 
-        confirm = input(
-            "Attempt to wake the box with POWER? Type YES: "
-        ).strip()
+            remote.send_key_command("POWER")
+            print("POWER command sent. Check the TV screen.")
 
-        if confirm != "YES":
-            print("Cancelled.")
-            return
+        elif state is False:
+            print("The box reports that it is OFF.")
+            confirm = input(
+                "Send POWER to attempt to wake it? Type YES: "
+            ).strip()
 
-        remote.send_key_command("POWER")
-        print("Wake attempt sent. Check the TV screen.")
+            if confirm != "YES":
+                print("Cancelled.")
+                return
+
+            remote.send_key_command("POWER")
+            print("POWER command sent. Check the TV screen.")
+
+        else:
+            print("Power state is unknown.")
+            print("No command sent for safety.")
 
     except Exception as error:
         print(f"{type(error).__name__}: {error}")
